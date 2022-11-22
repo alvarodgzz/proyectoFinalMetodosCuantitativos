@@ -25,7 +25,7 @@ void addIndexes(vector< vector<double> > &mat) {
 void printMat(vector< vector<double> > mat) {
 
     for (int i = 0; i < mat.size(); i++) {
-        
+
         for (int j = 0; j < mat[0].size(); j++) {
             if (i == 0 && j == 0) {
                 cout << "    ";
@@ -46,8 +46,11 @@ void printMat(vector< vector<double> > mat) {
     }
 }
 
-double fRand(double min, double max) {
-    return min + ( fmod(rand(), ( max - min + 1 )) );
+double fRand(double a, double b) {
+  float random = ((float) rand()) / (float) RAND_MAX;
+  float diff = b - a;
+  float r = random * diff;
+  return a + r;
 }
 
 int iRand(int min, int max) {
@@ -65,7 +68,7 @@ void addProbs(vector< vector<double> > &mat) {
         int j = 1;
         while (currProb > 0.00) {
 
-            if (j >= mat[0].size()) {    
+            if (j >= mat[0].size()) {
                 j = 1;
             }
 
@@ -85,11 +88,54 @@ void addProbs(vector< vector<double> > &mat) {
     }
 }
 
+void endGame() {
+    cout << "GAME ENDED" << endl;
+}
+
+void teamsCheck(vector< vector<double> > &mat, vector<int> &guerreros) {
+
+    if (mat.empty() || guerreros.empty()) {
+      // End game
+      endGame();
+    }
+
+    vector< vector<double> >::iterator itMat;
+    itMat = mat.begin();
+    ++itMat;
+
+    int colIdx = 0;
+
+    bool teamDown = false;
+
+    for (auto it = guerreros.begin(); it != guerreros.end(); ++it) {
+      if (*it == 0) {
+        guerreros.erase(it);
+        mat.erase(remove(mat.begin(), mat.end(), *itMat), mat.end());
+        teamDown = true;
+        break;
+      }
+      itMat++;
+      colIdx++;
+    }
+
+    if (teamDown) {
+      int idx = 0;
+      for (int i = 0; i < mat.size(); i++) {
+          mat[i].erase(std::remove(mat[i].begin(), mat[i].end(), mat[i][colIdx + 1]), mat[i].end());
+      }
+    }
+
+}
+
 void runGame(vector< vector<double> > &mat, vector<int> &guerreros) {
+
+    // Teams check, if a team runs out of warriors we need to refactor de matrix
+    teamsCheck(mat, guerreros);
 
     // Playing team
     int actTeam = iRand(0, mat.size());
-
+    double victimTeam = fRand(0.01, 0.99);
+    cout << victimTeam << endl;
 }
 
 int main() {
@@ -102,7 +148,7 @@ int main() {
     // Number of teams that will battle
     int nTeams;
     cout << " Cuantos grupos van a pelear? : ";
-    cin >> nTeams;              
+    cin >> nTeams;
 
     // Number of warriors per team
     vector<int> guerreros(nTeams, 0);
@@ -120,5 +166,10 @@ int main() {
 
     printMat(mat);
 
+    teamsCheck(mat, guerreros);
+
+    printMat(mat);
+
+    //runGame(mat, guerreros);
     return 0;
 }
