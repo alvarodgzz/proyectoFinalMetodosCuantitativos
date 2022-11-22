@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <ctime>
+#include <float.h>
 
 using namespace std;
 
@@ -92,12 +93,16 @@ void endGame() {
     cout << "GAME ENDED" << endl;
 }
 
-void teamsCheck(vector< vector<double> > &mat, vector<int> &guerreros) {
-
-    if (mat.empty() || guerreros.empty()) {
-      // End game
-      endGame();
+bool warriosLeft(vector<int> &guerreros) {
+  for (auto warrior : guerreros) {
+    if (warrior > 0) {
+      return true;
     }
+  }
+  return 0;
+}
+
+void teamsCheck(vector< vector<double> > &mat, vector<int> &guerreros) {
 
     vector< vector<double> >::iterator itMat;
     itMat = mat.begin();
@@ -108,7 +113,7 @@ void teamsCheck(vector< vector<double> > &mat, vector<int> &guerreros) {
     bool teamDown = false;
 
     for (auto it = guerreros.begin(); it != guerreros.end(); ++it) {
-      if (*it == 0) {
+      if (*it <= 0) {
         guerreros.erase(it);
         mat.erase(remove(mat.begin(), mat.end(), *itMat), mat.end());
         teamDown = true;
@@ -133,9 +138,22 @@ void runGame(vector< vector<double> > &mat, vector<int> &guerreros) {
     teamsCheck(mat, guerreros);
 
     // Playing team
-    int actTeam = iRand(0, mat.size());
+    int actTeam = iRand(1, mat.size() - 1);
     double victimTeam = fRand(0.01, 0.99);
-    cout << victimTeam << endl;
+
+    double minDiff = DBL_MAX;
+    int attackTo = -1;
+
+    for (int i = 1; i < mat[0].size(); i++) {
+
+      double actDiff = abs(victimTeam - mat[actTeam][i]);
+      if (actDiff < minDiff) {
+        minDiff = actDiff;
+        attackTo = i;
+      }
+    }
+    cout << "Atacó el equipo " << actTeam << " al equipo " << attackTo << endl;
+    guerreros[attackTo - 1] -= 1;
 }
 
 int main() {
@@ -164,11 +182,18 @@ int main() {
     addIndexes(mat);
     addProbs(mat);
 
-    printMat(mat);
+    int i = 0;
+    while (!guerreros.empty()) {
+      printMat(mat);
 
-    teamsCheck(mat, guerreros);
+      runGame(mat, guerreros);
 
-    printMat(mat);
+      for (auto i : guerreros) cout << i << endl;
+
+      printMat(mat);
+      i++;
+    }
+
 
     //runGame(mat, guerreros);
     return 0;
